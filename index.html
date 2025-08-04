@@ -177,12 +177,12 @@
   <div id="methodSelector" class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12 hidden">
     <div class="method-card text-center" onclick="showMethod1()">
       <i class="fas fa-calendar-check text-primary mb-4 text-4xl"></i>
-      <h2 class="text-2xl font-bold mb-2">プレビュー & HTML生成</h2>
+      <h2 class="2xl font-bold mb-2">プレビュー & HTML生成</h2>
       <p class="text-text-light">カレンダーを確認しながら生成します</p>
     </div>
     <div class="method-card text-center" onclick="showMethod2()">
       <i class="fas fa-clipboard-list text-secondary mb-4 text-4xl"></i>
-      <h2 class="text-2xl font-bold mb-2">手動貼り付け方式</h2>
+      <h2 class="2xl font-bold mb-2">手動貼り付け方式</h2>
       <p class="text-text-light">JSONを貼り付けて生成します</p>
     </div>
   </div>
@@ -191,7 +191,7 @@
     <div class="method-card border-l-4 border-primary">
       <div class="flex items-center mb-6">
         <i class="fas fa-calendar-check text-primary text-3xl mr-3"></i>
-        <h2 class="text-2xl font-bold">プレビュー & HTML生成</h2>
+        <h2 class="2xl font-bold">プレビュー & HTML生成</h2>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="input-group"><label>APIキー</label><input id="apiKey1" type="text" placeholder="APIキー"></div>
@@ -209,7 +209,7 @@
       </div>
 
       <div id="manualLinkInputSection" class="hidden">
-        <h3 class="text-xl font-bold mb-4">イベント別リンク入力</h3>
+        <h3 class="xl font-bold mb-4">イベント別リンク入力</h3>
         <div id="eventLinkInputs">
           </div>
       </div>
@@ -220,7 +220,7 @@
     <div class="method-card border-l-4 border-secondary">
       <div class="flex items-center mb-6">
         <i class="fas fa-clipboard-list text-secondary text-3xl mr-3"></i>
-        <h2 class="text-2xl font-bold">手動貼り付け方式</h2>
+        <h2 class="2xl font-bold">手動貼り付け方式</h2>
       </div>
       <div class="input-group mb-6"><label>JSONデータ</label><textarea id="jsonData" class="h-40" placeholder="JSONを貼り付け"></textarea></div>
       <div class="grid grid-cols-2 gap-6">
@@ -240,7 +240,7 @@
   </div>
 
   <div id="outputSection" class="hidden mt-12">
-    <h2 class="text-2xl font-bold text-primary mb-4">生成されたHTMLコード</h2>
+    <h2 class="2xl font-bold text-primary mb-4">生成されたHTMLコード</h2>
     <textarea id="codeOutput" class="form-control h-60 mb-4"></textarea>
     <div class="flex gap-4 mb-6">
       <button class="btn-secondary-lg px-6 py-3" onclick="copyToClipboard()"><i class="fas fa-copy mr-2"></i>コピー</button>
@@ -486,7 +486,8 @@
             } else {
                 const dStr=`${sd.getMonth()+1}/${sd.getDate()}`, 
                       dayStr=dayNames[sd.getDay()], 
-                      timeStr=e.start.dateTime?` ${sd.toTimeString().slice(0,5).replace(':', '')}-${ed.toTimeString().slice(0,5).replace(':', '')}`:''; 
+                      // ここを修正: replace(':','') を削除
+                      timeStr=e.start.dateTime?` ${sd.toTimeString().slice(0,5)}-${ed.toTimeString().slice(0,5)}`:''; 
                 
                 // 手動リンクがあれば <a> タグを使用、なければ <span> タグ
                 contentHtml = manualLink ?
@@ -499,8 +500,7 @@
         const currentYear = document.getElementById('year1')?.value || document.getElementById('year2')?.value || new Date().getFullYear();
         const currentMonth = document.getElementById('month1')?.value || document.getElementById('month2')?.value || (new Date().getMonth() + 1);
 
-        // wpCss はシステム本体では不要だが、生成されるHTMLには含めるため、ここでは空文字列に。
-        // （変更点）CSSを<head>に統合したので、ここではwpCssは空にするか削除する
+        // wpCss はシステム本体では不要になりました。
         const wpCss = ''; 
         
         const html=`${wpCss}<div class="schedule-container"><h2 class="schedule-title">📅 ${currentYear}年${monthNames[currentMonth]}スケジュール</h2><ul class="schedule-list">${list}</ul></div>`; 
