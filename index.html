@@ -8,7 +8,8 @@
   <meta name="description" content="三大小ジュニアバレーボールクラブのスケジュール生成システム（プレビュー＆手動対応版）">
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.8/index.global.min.js" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.8/index.global.min.css" rel="stylesheet" />
+  
   <style>
     /* === システムUIの基本色とフォント === */
     :root { --primary: #0f3460; --primary-light: #1a5dad; --secondary: #00b4d8; --secondary-light: #48cae4; --accent: #ff5678;
@@ -52,44 +53,71 @@
     .hidden { display: none !important; }
     .calendar-container { max-width: 600px; margin: 0 auto; }
 
-    /* === スケジュール表示部分のCSS（システム本体でも使用） === */
-    .schedule-container { max-width: 600px; margin: 20px auto; background: #fff; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-    .schedule-title { background: linear-gradient(135deg, #4a90e2, #2563eb); color: white; text-align: center; padding: 12px; margin: 0; font-size: 1.25rem; font-weight: 700; }
-    .schedule-list { list-style: none; padding: 0; margin: 0; }
-    .schedule-item { display: flex; align-items: center; padding: 10px 16px; border-bottom: 1px solid #eee; transition: background 0.2s; }
-    .schedule-item:hover { background: #f9f9ff; }
-    .schedule-item:last-child { border-bottom: none; }
-    .date { font-weight: bold; color: #333; min-width: 80px; margin-right: 12px; background: #f0f0f0; padding: 4px 8px; border-radius: 4px; font-size: 0.875rem; text-align: center; }
-    .content { flex: 1; color: #666; }
-    .practice { color: #2e7d32; font-weight: 500; }
-    .match { color: #f57c00; font-weight: 600; }
-    .camp { 
-      background: linear-gradient(135deg, #ff6b35, #f7931e, #ffcc02); 
-      color: white; 
-      padding: 12px 20px; 
-      border-radius: 25px; 
-      font-weight: bold; 
-      font-size: 1.1em;
-      box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3), 0 4px 8px rgba(0, 0, 0, 0.1);
-      border: 2px solid #fff;
-      display: inline-block;
-      margin: 4px 0;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-      transform: translateY(-2px);
-      transition: all 0.3s ease;
-      animation: campPulse 2s infinite;
+    /* === スケジュール表示部分のCSS（システム本体および生成されるHTML用） === */
+    /* !important はWordPress埋め込み時の競合対策のため残します */
+    .schedule-container { max-width: 600px !important; margin: 20px auto !important; background: #fff !important; border: 1px solid #ddd !important; border-radius: 8px !important; overflow: hidden !important; box-shadow: 0 5px 15px rgba(0,0,0,0.05) !important; font-family: 'Noto Sans JP', sans-serif !important; color: #333 !important; }
+    .schedule-title { background: linear-gradient(135deg, #4a90e2, #2563eb) !important; color: white !important; text-align: center !important; padding: 12px !important; margin: 0 !important; font-size: 1.25rem !important; font-weight: 700 !important; }
+    .schedule-list { list-style: none !important; padding: 0 !important; margin: 0 !important; }
+    .schedule-item { display: flex !important; align-items: center !important; padding: 10px 16px !important; border-bottom: 1px solid #eee !important; transition: background 0.2s !important; }
+    .schedule-item:hover { background: #f9f9ff !important; }
+    .schedule-item:last-child { border-bottom: none !important; }
+    .schedule-container .date { font-weight: bold !important; color: #333 !important; min-width: 80px !important; margin-right: 12px !important; background: #f0f0f0 !important; padding: 4px 8px !important; border-radius: 4px !important; font-size: 0.875rem !important; text-align: center !important; }
+    .schedule-container .content { flex: 1 !important; color: #666 !important; }
+    
+    /* イベント種別のスタイル */
+    .schedule-container .practice { color: #2e7d32 !important; font-weight: 500 !important; text-decoration: none !important; }
+    .schedule-container .practice:hover { color: #1b5e20 !important; text-decoration: underline !important; }
+    .schedule-container .match { color: #f57c00 !important; font-weight: 600 !important; text-decoration: none !important; }
+    .schedule-container .match:hover { color: #e65100 !important; text-decoration: underline !important; }
+    
+    /* 合宿のスタイル (ボタン形式で強調) */
+    .schedule-container .camp, 
+    .schedule-container a.camp,
+    .schedule-item .camp,
+    .schedule-item a.camp,
+    .content .camp,
+    .content a.camp { 
+      background: linear-gradient(135deg, #ff6b35, #f7931e, #ffcc02) !important; 
+      color: white !important; 
+      padding: 12px 20px !important; 
+      border-radius: 25px !important; 
+      font-weight: bold !important; 
+      font-size: 1.1em !important;
+      box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3), 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+      border: 2px solid #fff !important;
+      display: inline-block !important;
+      margin: 4px 0 !important;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2) !important;
+      transform: translateY(-2px) !important;
+      transition: all 0.3s ease !important;
+      animation: campPulse 2s infinite !important;
+      text-decoration: none !important; /* リンクの下線をなくす */
+      line-height: 1.2 !important;
+      cursor: pointer !important;
     }
-    .camp:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 24px rgba(255, 107, 53, 0.4), 0 6px 12px rgba(0, 0, 0, 0.15);
-      background: linear-gradient(135deg, #ff8c5a, #ffa43e, #ffd633);
+    .schedule-container .camp:hover,
+    .schedule-container a.camp:hover,
+    .schedule-item .camp:hover,
+    .schedule-item a.camp:hover,
+    .content .camp:hover,
+    .content a.camp:hover {
+      transform: translateY(-4px) !important;
+      box-shadow: 0 12px 24px rgba(255, 107, 53, 0.4), 0 6px 12px rgba(0, 0, 0, 0.15) !important;
+      background: linear-gradient(135deg, #ff8c5a, #ffa43e, #ffd633) !important;
+      color: white !important;
     }
     @keyframes campPulse {
-      0% { box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3), 0 4px 8px rgba(0, 0, 0, 0.1); }
-      50% { box-shadow: 0 12px 24px rgba(255, 107, 53, 0.5), 0 6px 12px rgba(0, 0, 0, 0.2); }
-      100% { box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3), 0 4px 8px rgba(0, 0, 0, 0.1); }
+      0% { box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3), 0 4px 8px rgba(0, 0, 0, 0.1) !important; }
+      50% { box-shadow: 0 12px 24px rgba(255, 107, 53, 0.5), 0 6px 12px rgba(0, 0, 0, 0.2) !important; }
+      100% { box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3), 0 4px 8px rgba(0, 0, 0, 0.1) !important; }
     }
-    .no-practice { color: #616161; }
+    
+    .schedule-container .no-practice { color: #616161 !important; text-decoration: none !important; }
+    .schedule-container .no-practice:hover { color: #9e9e9e !important; text-decoration: underline !important; }
+    
+    /* リンク要素のデフォルトスタイルを上書き */
+    .schedule-container a { text-decoration: none !important; color: inherit !important; }
+    .schedule-container a:visited { color: inherit !important; }
 
     /* === 手動リンク入力セクション === */
     #manualLinkInputSection {
@@ -120,9 +148,9 @@
 
     /* === レスポンシブ対応 === */
     @media (max-width: 600px) { 
-        .schedule-container { margin: 10px; } 
-        .schedule-item { flex-direction: column; align-items: flex-start; } 
-        .date { margin-bottom: 8px; width: 100%; }
+        .schedule-container { margin: 10px !important; } 
+        .schedule-item { flex-direction: column !important; align-items: flex-start !important; } 
+        .schedule-container .date { margin-bottom: 8px !important; width: 100% !important; } 
         .event-link-item { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
         .event-link-item .event-title-display, .event-link-item input[type="url"] {
             width: 100%;
@@ -130,7 +158,7 @@
         }
     }
   </style>
-</head>
+  </head>
 <body class="p-6">
   <div class="header-container">
     <div class="main-title">
@@ -218,7 +246,7 @@
       <button class="btn-secondary-lg px-6 py-3" onclick="copyToClipboard()"><i class="fas fa-copy mr-2"></i>コピー</button>
       <button class="btn-primary-lg px-6 py-3" onclick="backToSelector()"><i class="fas fa-plus mr-2"></i>新規作成</button>
     </div>
-    <h2 class="text-2xl font-bold text-primary mb-4">プレビュー</h2>
+    <h2 class="2xl font-bold text-primary mb-4">プレビュー</h2>
     <div id="previewSection" class="border p-4 rounded-lg bg-white shadow-inner"></div>
   </div>
 
@@ -261,7 +289,7 @@
         if(!key||!cal){alert('APIキーとカレンダーIDを入力してください');return;} 
         const days=new Date(y,parseInt(m),0).getDate(); 
         const tmin=`${y}-${m}-01T00:00:00Z`, 
-              tmax=`${y}-${m}-${(''+days).padStart(2,'0')}T23:59:59Z`; 
+               tmax=`${y}-${m}-${(''+days).padStart(2,'0')}T23:59:59Z`; 
         generatedURL=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cal)}/events?key=${encodeURIComponent(key)}&timeMin=${encodeURIComponent(tmin)}&timeMax=${encodeURIComponent(tmax)}&orderBy=startTime&singleEvents=true`; 
         document.getElementById('calendarUrl').href=generatedURL; 
         document.getElementById('calendarUrl').textContent=generatedURL; 
@@ -422,6 +450,11 @@
 
             let contentHtml = '';
 
+            if(/試合/.test(t)) cls='match'; 
+            else if(/合宿/.test(t)) cls='camp'; 
+            else if(/休/.test(t)) cls='no-practice'; 
+            else if(/練習/.test(t)) cls='practice'; 
+            
             if(cls==='camp'){ 
                 const k=t+sd.getTime(); 
                 if(camps.has(k)) return; 
@@ -466,77 +499,10 @@
         const currentYear = document.getElementById('year1')?.value || document.getElementById('year2')?.value || new Date().getFullYear();
         const currentMonth = document.getElementById('month1')?.value || document.getElementById('month2')?.value || (new Date().getMonth() + 1);
 
-        const wpCss=`<style>
-/* WordPress対応強化CSS - スケジュール表示部分のスタイル（WordPress埋め込み用） */
-.schedule-container { max-width: 600px !important; margin: 20px auto !important; background: #fff !important; border: 1px solid #ddd !important; border-radius: 8px !important; overflow: hidden !important; box-shadow: 0 5px 15px rgba(0,0,0,0.05) !important; font-family: 'Noto Sans JP', sans-serif !important; color: #333 !important; }
-.schedule-title { background: linear-gradient(135deg, #4a90e2, #2563eb) !important; color: white !important; text-align: center !important; padding: 12px !important; margin: 0 !important; font-size: 1.25rem !important; font-weight: 700 !important; }
-.schedule-list { list-style: none !important; padding: 0 !important; margin: 0 !important; }
-.schedule-item { display: flex !important; align-items: center !important; padding: 10px 16px !important; border-bottom: 1px solid #eee !important; transition: background 0.2s !important; }
-.schedule-item:hover { background: #f9f9ff !important; }
-.schedule-item:last-child { border-bottom: none !important; }
-.schedule-container .date { font-weight: bold !important; color: #333 !important; min-width: 80px !important; margin-right: 12px !important; background: #f0f0f0 !important; padding: 4px 8px !important; border-radius: 4px !important; font-size: 0.875rem !important; text-align: center !important; }
-.schedule-container .content { flex: 1 !important; color: #666 !important; }
-.schedule-container .practice { color: #2e7d32 !important; font-weight: 500 !important; text-decoration: none !important; }
-.schedule-container .practice:hover { color: #1b5e20 !important; text-decoration: underline !important; }
-.schedule-container .match { color: #f57c00 !important; font-weight: 600 !important; text-decoration: none !important; }
-.schedule-container .match:hover { color: #e65100 !important; text-decoration: underline !important; }
-/* リンクが貼られた要素の基本的なスタイル */
-.schedule-container a { 
-    text-decoration: none !important; /* デフォルトの下線をなくす */
-    color: inherit !important; /* 親要素の色を継承 */
-}
-.schedule-container a:visited { 
-    color: inherit !important; /* 訪問済みのリンクも色を継承 */
-}
-
-/* camp クラスの要素、およびそれがリンクの場合のスタイル */
-.schedule-container .camp, 
-.schedule-container a.camp,
-.schedule-item .camp,
-.schedule-item a.camp,
-.content .camp,
-.content a.camp { 
-  background: linear-gradient(135deg, #ff6b35, #f7931e, #ffcc02) !important; 
-  color: white !important; 
-  padding: 12px 20px !important; 
-  border-radius: 25px !important; 
-  font-weight: bold !important; 
-  font-size: 1.1em !important;
-  box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3), 0 4px 8px rgba(0, 0, 0, 0.1) !important;
-  border: 2px solid #fff !important;
-  display: inline-block !important;
-  margin: 4px 0 !important;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2) !important;
-  transform: translateY(-2px) !important;
-  transition: all 0.3s ease !important;
-  animation: campPulse 2s infinite !important;
-  line-height: 1.2 !important;
-  cursor: pointer !important;
-}
-.schedule-container .camp:hover,
-.schedule-container a.camp:hover,
-.schedule-item .camp:hover,
-.schedule-item a.camp:hover,
-.content .camp:hover,
-.content a.camp:hover {
-  transform: translateY(-4px) !important;
-  box-shadow: 0 12px 24px rgba(255, 107, 53, 0.4), 0 6px 12px rgba(0, 0, 0, 0.15) !important;
-  background: linear-gradient(135deg, #ff8c5a, #ffa43e, #ffd633) !important;
-  color: white !important;
-}
-@keyframes campPulse {
-  0% { box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3), 0 4px 8px rgba(0, 0, 0, 0.1) !important; }
-  50% { box-shadow: 0 12px 24px rgba(255, 107, 53, 0.5), 0 6px 12px rgba(0, 0, 0, 0.2) !important; }
-  100% { box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3), 0 4px 8px rgba(0, 0, 0, 0.1) !important; }
-}
-.schedule-container .no-practice { color: #616161 !important; text-decoration: none !important; }
-.schedule-container .no-practice:hover { color: #9e9e9e !important; text-decoration: underline !important; } 
-@media (max-width: 600px) { 
-  .schedule-container { margin: 10px !important; } 
-  .schedule-item { flex-direction: column !important; align-items: flex-start !important; } 
-  .schedule-container .date { margin-bottom: 8px !important; width: 100% !important; } 
-}
-</style>`; 
+        // wpCss はシステム本体では不要だが、生成されるHTMLには含めるため、ここでは空文字列に。
+        // （変更点）CSSを<head>に統合したので、ここではwpCssは空にするか削除する
+        const wpCss = ''; 
+        
         const html=`${wpCss}<div class="schedule-container"><h2 class="schedule-title">📅 ${currentYear}年${monthNames[currentMonth]}スケジュール</h2><ul class="schedule-list">${list}</ul></div>`; 
         document.getElementById('codeOutput').value=html; 
         document.getElementById('previewSection').innerHTML=html; 
