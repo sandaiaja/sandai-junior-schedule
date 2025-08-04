@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>三大小ジュニアスケジュール／プレビュー版</title>
+  <meta name="theme-color" content="#1e3c72">
+  <meta name="description" content="三大小ジュニアバレーボールクラブのスケジュール生成システム（プレビュー＆手動対応版）">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.8/index.global.min.css" rel="stylesheet" />
+  <style>
+    :root { --primary: #0f3460; --primary-light: #1a5dad; --secondary: #00b4d8; --secondary-light: #48cae4; --accent: #ff5678;
+             --background: #f8fafc; --card-bg: #ffffff; --text: #333; --text-light: #666; --success: #10b981; }
+    body { background: var(--background); color: var(--text); font-family: 'Noto Sans JP', sans-serif; }
+    .header-container { background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 3rem 1rem; border-radius: 20px;
+                        color: #fff; text-align: center; position: relative; overflow: hidden; }
+    .main-title .title-top { font-size: 2.5rem; font-weight: 900; text-transform: uppercase;
+                              text-shadow: 2px 2px 8px rgba(0,0,0,0.4); }
+    .main-title .title-middle { font-size: 2rem; margin-top: -0.5rem; opacity: 0.9; }
+    .main-title .title-bottom { font-size: 1.8rem; margin-top: -0.5rem; opacity: 0.9; }
+    .subtitle { margin-top: 1rem; font-size: 1.1rem; opacity: 0.9; }
+    .system-start-btn { display: inline-block; background: var(--primary); color: #fff; border: none; border-radius: 40px;
+                        font-size: 1.2rem; font-weight: 700; padding: 1rem 3rem; margin-top: 2rem; cursor: pointer;
+                        box-shadow: 0 8px 20px rgba(0,0,0,0.2); transition: background 0.3s, transform 0.3s;
+                        animation: pulse 2.5s infinite; }
+    .system-start-btn:hover { background: var(--primary-light); transform: translateY(-3px); }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(15,52,96,0.4); } 70% { box-shadow: 0 0 0 15px rgba(15,52,96,0); } 100% { box-shadow: 0 0 0 0 rgba(15,52,96,0); } }
+    .method-card { background: #fff; border-radius: 16px; padding: 2rem; box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+                   transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; }
+    .method-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.15); }
+    .input-group label { font-weight: 600; margin-bottom: 0.5rem; display: block; }
+    .input-group input, .input-group select, .input-group textarea { width: 100%; border: 2px solid var(--secondary);
+                                                  border-radius: 8px; padding: 0.75rem 1rem; }
+    .btn-primary-lg { background: var(--primary); color: #fff; padding: 0.75rem 1.5rem;
+                     font-weight: 600; border-radius: 8px; transition: background 0.3s; }
+    .btn-primary-lg:hover { background: var(--primary-light); }
+    .btn-secondary-lg { background: var(--secondary); color: #fff; padding: 0.75rem 1.5rem;
+                       font-weight: 600; border-radius: 8px; transition: background 0.3s; }
+    .btn-secondary-lg:hover { background: var(--secondary-light); }
+    .hidden { display: none !important; }
+    .calendar-container { max-width: 600px; margin: 0 auto; }
+    /* Schedule Styles */
+    .schedule-container { max-width: 600px; margin: 20px auto; background: #fff; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+    .schedule-title { background: linear-gradient(135deg, #4a90e2, #2563eb); color: white; text-align: center; padding: 12px; margin: 0; font-size: 1.25rem; font-weight: 700; }
+    .schedule-list { list-style: none; padding: 0; margin: 0; }
+    .schedule-item { display: flex; align-items: center; padding: 10px 16px; border-bottom: 1px solid #eee; transition: background 0.2s; }
+    .schedule-item:hover { background: #f9f9ff; }
+    .schedule-item:last-child { border-bottom: none; }
+    .date { font-weight: bold; color: #333; min-width: 80px; margin-right: 12px; background: #f0f0f0; padding: 4px 8px; border-radius: 4px; font-size: 0.875rem; text-align: center; }
+    .content { flex: 1; color: #666; }
+    .practice { color: #2e7d32; font-weight: 500; }
+    .match { color: #f57c00; font-weight: 600; }
+    .camp { 
+      background: linear-gradient(135deg, #ff6b35, #f7931e, #ffcc02); 
+      color: white; 
+      padding: 12px 20px; 
+      border-radius: 25px; 
+      font-weight: bold; 
+      font-size: 1.1em;
+      box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3), 0 4px 8px rgba(0, 0, 0, 0.1);
+      border: 2px solid #fff;
+      display: inline-block;
+      margin: 4px 0;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+      transform: translateY(-2px);
+      transition: all 0.3s ease;
+      animation: campPulse 2s infinite;
+    }
+    .camp:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(255, 107, 53, 0.4), 0 6px 12px rgba(0, 0, 0, 0.15);
+      background: linear-gradient(135deg, #ff8c5a, #ffa43e, #ffd633);
+    }
+    @keyframes campPulse {
+      0% { box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3), 0 4px 8px rgba(0, 0, 0, 0.1); }
+      50% { box-shadow: 0 12px 24px rgba(255, 107, 53, 0.5), 0 6px 12px rgba(0, 0, 0, 0.2); }
+      100% { box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3), 0 4px 8px rgba(0, 0, 0, 0.1); }
+    }
+    .no-practice { color: #616161; }
+    @media (max-width: 600px) { .schedule-container { margin: 10px; } .schedule-item { flex-direction: column; align-items: flex-start; } .date { margin-bottom: 8px; width: 100%; } }
+  </style>
+</head>
+<body class="p-6">
+  <div class="header-container">
+    <div class="main-title">
+      <span class="title-top">SANDAI JUNIOR</span><br>
+      <span class="title-middle">automatic scheduling</span><br>
+      <span class="title-bottom">system</span>
+    </div>
+    <div class="subtitle">
+      <i class="fas fa-volleyball-ball mr-2"></i>Googleカレンダー連携システム<i class="fas fa-calendar-alt ml-2"></i>
+    </div>
+    <button class="system-start-btn" onclick="startSystem()">
+      <i class="fas fa-rocket mr-2"></i>system START
+    </button>
+  </div>
+
+  <div id="methodSelector" class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12 hidden">
+    <div class="method-card text-center" onclick="showMethod1()">
+      <i class="fas fa-calendar-check text-primary mb-4 text-4xl"></i>
+      <h2 class="text-2xl font-bold mb-2">プレビュー & HTML生成</h2>
+      <p class="text-text-light">カレンダーを確認しながら生成します</p>
+    </div>
+    <div class="method-card text-center" onclick="showMethod2()">
+      <i class="fas fa-clipboard-list text-secondary mb-4 text-4xl"></i>
+      <h2 class="text-2xl font-bold mb-2">手動貼り付け方式</h2>
+      <p class="text-text-light">JSONを貼り付けて生成します</p>
+    </div>
+  </div>
+
+  <div id="method1" class="hidden mt-12">
+    <div class="method-card border-l-4 border-primary">
+      <div class="flex items-center mb-6">
+        <i class="fas fa-calendar-check text-primary text-3xl mr-3"></i>
+        <h2 class="text-2xl font-bold">プレビュー & HTML生成</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="input-group"><label>APIキー</label><input id="apiKey1" type="text" placeholder="APIキー"></div>
+        <div class="input-group"><label>カレンダーID</label><input id="calendarId1" type="text" placeholder="カレンダーID"></div>
+        <div class="input-group"><label>年</label><input id="year1" type="number" min="2024" max="2030"></div>
+        <div class="input-group"><label>月</label><select id="month1"></select></div>
+      </div>
+      <div class="mt-8 flex flex-col sm:flex-row gap-4">
+        <button class="btn-secondary-lg flex-1" onclick="showCalendarPreview()"><i class="fas fa-eye mr-2"></i>プレビュー</button>
+        <button class="btn-primary-lg flex-1" onclick="generateHTMLFromAPI()"><i class="fas fa-code mr-2"></i>HTML生成</button>
+      </div>
+      <div id="autoUrlResult" class="mt-6 hidden">
+        <p class="text-success"><i class="fas fa-check-circle mr-1"></i>URL生成成功</p>
+        <a id="calendarUrl" class="text-secondary underline" target="_blank"></a>
+      </div>
+    </div>
+  </div>
+
+  <div id="method2" class="hidden mt-12">
+    <div class="method-card border-l-4 border-secondary">
+      <div class="flex items-center mb-6">
+        <i class="fas fa-clipboard-list text-secondary text-3xl mr-3"></i>
+        <h2 class="text-2xl font-bold">手動貼り付け方式</h2>
+      </div>
+      <div class="input-group mb-6"><label>JSONデータ</label><textarea id="jsonData" class="h-40" placeholder="JSONを貼り付け"></textarea></div>
+      <div class="grid grid-cols-2 gap-6">
+        <div class="input-group"><label>年</label><input id="year2" type="number" min="2024" max="2030"></div>
+        <div class="input-group"><label>月</label><select id="month2"></select></div>
+      </div>
+      <div class="mt-8 flex justify-center gap-6">
+        <button class="btn-secondary-lg px-8 py-3" onclick="generateFromJSON()"><i class="fas fa-magic mr-2"></i>生成</button>
+        <button class="btn-primary-lg px-8 py-3" onclick="backToSelector()"><i class="fas fa-arrow-left mr-2"></i>戻る</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="calendarPreview" class="hidden mt-12">
+    <div class="calendar-container"><div id="calendar"></div></div>
+    <div class="mt-6 flex justify-center"><button class="btn-primary-lg px-6 py-2" onclick="backToSelector()"><i class="fas fa-arrow-left mr-2"></i>戻る</button></div>
+  </div>
+
+  <div id="outputSection" class="hidden mt-12">
+    <h2 class="text-2xl font-bold text-primary mb-4">生成されたHTMLコード</h2>
+    <textarea id="codeOutput" class="form-control h-60 mb-4"></textarea>
+    <div class="flex gap-4 mb-6">
+      <button class="btn-secondary-lg px-6 py-3" onclick="copyToClipboard()"><i class="fas fa-copy mr-2"></i>コピー</button>
+      <button class="btn-primary-lg px-6 py-3" onclick="backToSelector()"><i class="fas fa-plus mr-2"></i>新規作成</button>
+    </div>
+    <h2 class="text-2xl font-bold text-primary mb-4">プレビュー</h2>
+    <div id="previewSection" class="border p-4 rounded-lg bg-white shadow-inner"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.8/index.global.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const now=new Date();
+      document.getElementById('year1').value=now.getFullYear();
+      document.getElementById('year2').value=now.getFullYear();
+      const m1=document.getElementById('month1'), m2=document.getElementById('month2');
+      for(let i=1;i<=12;i++){const o1=document.createElement('option');o1.value=i;o1.text=i+'月';m1.appendChild(o1);
+                                       const o2=document.createElement('option');o2.value=i;o2.text=i+'月';m2.appendChild(o2);}      
+      m1.value=now.getMonth()+1; m2.value=now.getMonth()+1;
+    });
+    function startSystem(){ document.querySelector('.header-container').classList.add('hidden'); document.getElementById('methodSelector').classList.remove('hidden'); }
+    function showMethod1(){ document.getElementById('methodSelector').classList.add('hidden'); document.getElementById('method1').classList.remove('hidden'); }
+    function showMethod2(){ document.getElementById('methodSelector').classList.add('hidden'); document.getElementById('method2').classList.remove('hidden'); }
+    function backToSelector(){ ['methodSelector','method1','method2','calendarPreview','outputSection'].forEach(id=>document.getElementById(id).classList.add('hidden')); document.querySelector('.header-container').classList.remove('hidden'); }
+    let generatedURL='';
+    function generateAutoURL(){ const key=document.getElementById('apiKey1').value.trim(); const cal=document.getElementById('calendarId1').value.trim(); const y=document.getElementById('year1').value; const m=(''+document.getElementById('month1').value).padStart(2,'0'); if(!key||!cal){alert('APIキーとカレンダーIDを入力してください');return;} const days=new Date(y,parseInt(m),0).getDate(); const tmin=`${y}-${m}-01T00:00:00Z`, tmax=`${y}-${m}-${(''+days).padStart(2,'0')}T23:59:59Z`; generatedURL=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cal)}/events?key=${encodeURIComponent(key)}&timeMin=${encodeURIComponent(tmin)}&timeMax=${encodeURIComponent(tmax)}&orderBy=startTime&singleEvents=true`; document.getElementById('calendarUrl').href=generatedURL; document.getElementById('calendarUrl').textContent=generatedURL; document.getElementById('autoUrlResult').classList.remove('hidden'); }
+    async function showCalendarPreview(){ await generateAutoURL(); const data=await fetch(generatedURL).then(r=>r.json()); backToSelector(); document.getElementById('calendarPreview').classList.remove('hidden'); const cal=new FullCalendar.Calendar(document.getElementById('calendar'),{initialView:'dayGridMonth',locale:'ja',headerToolbar:{left:'prev,next today',center:'title'},events:data.items.map(e=>({title:e.summary||'無題',start:e.start.dateTime||e.start.date,end:e.end.dateTime||e.end.date,allDay:!e.start.dateTime}))}); cal.render(); }
+    function generateHTMLFromAPI(){ generateAutoURL(); fetch(generatedURL).then(r=>r.json()).then(d=>generateFromItems(d.items)); }
+    function generateFromJSON(){ const j=document.getElementById('jsonData').value.trim(); if(!j){alert('JSONを入力してください'); return;} generateFromItems(JSON.parse(j).items||[]); }
+    function generateFromItems(items){ const monthNames=['','1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'], dayNames=['日','月','火','水','木','金','土']; items.sort((a,b)=>new Date(a.start.dateTime||a.start.date)-new Date(b.start.dateTime||b.start.date)); let list='', camps=new Set(); items.forEach(e=>{const sd=new Date(e.start.dateTime||e.start.date), ed=new Date(e.end.dateTime||e.end.date); let cls='', t=e.summary||'タイトルなし'; const link=e.htmlLink||''; if(/試合/.test(t)) cls='match'; else if(/合宿/.test(t)) cls='camp'; else if(/休/.test(t)) cls='no-practice'; else if(/練習/.test(t)) cls='practice'; if(cls==='camp'){ const k=t+sd.getTime(); if(camps.has(k)) return; camps.add(k); const sdD=sd.getDate(), edD=new Date(ed.getTime()-86400000).getDate(); const dStr=sdD===edD?`${sd.getMonth()+1}/${sdD}`:`${sd.getMonth()+1}/${sdD}～${edD}`, dayStr=sdD===edD?dayNames[sd.getDay()]:`${dayNames[sd.getDay()]}～${dayNames[new Date(ed.getTime()-86400000).getDay()]}`; const content=link?`<a href="${link}" target="_blank" rel="noopener noreferrer" class="${cls}">🏕️ ${t} 🏐</a>`:`<span class="${cls}">🏕️ ${t} 🏐</span>`; list+=`<li class="schedule-item"><div class="date">${dStr}(${dayStr})</div><div class="content">${content}</div></li>`;}else{const dStr=`${sd.getMonth()+1}/${sd.getDate()}`, dayStr=dayNames[sd.getDay()], timeStr=e.start.dateTime?` ${sd.toTimeString().slice(0,5)}-${ed.toTimeString().slice(0,5)}`:''; const content=link?`<a href="${link}" target="_blank" rel="noopener noreferrer" class="${cls}">${t}${timeStr}</a>`:`<span class="${cls}">${t}${timeStr}</span>`; list+=`<li class="schedule-item"><div class="date">${dStr}(${dayStr})</div><div class="content">${content}</div></li>`;}}); const y=new Date(items[0]?.start.dateTime||items[0]?.start.date||new Date()).getFullYear(), m=new Date(items[0]?.start.dateTime||items[0]?.start.date||new Date()).getMonth()+1; const wpCss=`<style>
+/* WordPress対応強化CSS - 合宿ボタンスタイル + リンク機能 */
+.schedule-container { max-width: 600px !important; margin: 20px auto !important; background: #fff !important; border: 1px solid #ddd !important; border-radius: 8px !important; overflow: hidden !important; box-shadow: 0 5px 15px rgba(0,0,0,0.05) !important; }
+.schedule-title { background: linear-gradient(135deg, #4a90e2, #2563eb) !important; color: white !important; text-align: center !important; padding: 12px !important; margin: 0 !important; font-size: 1.25rem !important; font-weight: 700 !important; }
+.schedule-list { list-style: none !important; padding: 0 !important; margin: 0 !important; }
+.schedule-item { display: flex !important; align-items: center !important; padding: 10px 16px !important; border-bottom: 1px solid #eee !important; transition: background 0.2s !important; }
+.schedule-item:hover { background: #f9f9ff !important; }
+.schedule-item:last-child { border-bottom: none !important; }
+.schedule-container .date { font-weight: bold !important; color: #333 !important; min-width: 80px !important; margin-right: 12px !important; background: #f0f0f0 !important; padding: 4px 8px !important; border-radius: 4px !important; font-size: 0.875rem !important; text-align: center !important; }
+.schedule-container .content { flex: 1 !important; color: #666 !important; }
+.schedule-container .practice { color: #2e7d32 !important; font-weight: 500 !important; text-decoration: none !important; }
+.schedule-container .practice:hover { color: #1b5e20 !important; text-decoration: underline !important; }
+.schedule-container .match { color: #f57c00 !important; font-weight: 600 !important; text-decoration: none !important; }
+.schedule-container .match:hover { color: #e65100 !important; text-decoration: underline !important; }
+.schedule-container .camp, 
+.schedule-container a.camp,
+.schedule-item .camp,
+.schedule-item a.camp,
+.content .camp,
+.content a.camp { 
+  background: linear-gradient(135deg, #ff6b35, #f7931e, #ffcc02) !important; 
+  color: white !important; 
+  padding: 12px 20px !important; 
+  border-radius: 25px !important; 
+  font-weight: bold !important; 
+  font-size: 1.1em !important;
+  box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3), 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+  border: 2px solid #fff !important;
+  display: inline-block !important;
+  margin: 4px 0 !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2) !important;
+  transform: translateY(-2px) !important;
+  transition: all 0.3s ease !important;
+  animation: campPulse 2s infinite !important;
+  text-decoration: none !important;
+  line-height: 1.2 !important;
+  cursor: pointer !important;
+}
+.schedule-container .camp:hover,
+.schedule-container a.camp:hover,
+.schedule-item .camp:hover,
+.schedule-item a.camp:hover,
+.content .camp:hover,
+.content a.camp:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 24px rgba(255, 107, 53, 0.4), 0 6px 12px rgba(0, 0, 0, 0.15) !important;
+  background: linear-gradient(135deg, #ff8c5a, #ffa43e, #ffd633) !important;
+  color: white !important;
+}
+@keyframes campPulse {
+  0% { box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3), 0 4px 8px rgba(0, 0, 0, 0.1) !important; }
+  50% { box-shadow: 0 12px 24px rgba(255, 107, 53, 0.5), 0 6px 12px rgba(0, 0, 0, 0.2) !important; }
+  100% { box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3), 0 4px 8px rgba(0, 0, 0, 0.1) !important; }
+}
+.schedule-container .no-practice { color: #616161 !important; text-decoration: none !important; }
+.schedule-container .no-practice:hover { color: #424242 !important; text-decoration: underline !important; }
+.schedule-container a { text-decoration: none !important; }
+.schedule-container a:visited { color: inherit !important; }
+@media (max-width: 600px) { 
+  .schedule-container { margin: 10px !important; } 
+  .schedule-item { flex-direction: column !important; align-items: flex-start !important; } 
+  .schedule-container .date { margin-bottom: 8px !important; width: 100% !important; } 
+}
+</style>`; const html=`${wpCss}<div class="schedule-container"><h2 class="schedule-title">📅 ${y}年${monthNames[m]}スケジュール</h2><ul class="schedule-list">${list}</ul></div>`; document.getElementById('codeOutput').value=html; document.getElementById('previewSection').innerHTML=html; backToSelector(); document.getElementById('outputSection').classList.remove('hidden'); }
+    function copyToClipboard(){ navigator.clipboard.writeText(document.getElementById('codeOutput').value); alert('コピーしました'); }
+  </script>
+</body>
+</html>
