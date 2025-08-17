@@ -381,7 +381,8 @@
 
             let contentHtml = '';
 
-            if(/試合/.test(t)) cls='match'; 
+            if(/試合/.test(t) && !/練習試合/.test(t)) cls='match'; 
+            else if(/練習試合/.test(t)) cls='practice-match';
             else if(/大会/.test(t)) cls='tournament';
             else if(/合宿/.test(t)) cls='camp'; 
             else if(/休/.test(t)) cls='no-practice'; 
