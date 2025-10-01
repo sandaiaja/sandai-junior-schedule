@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#1e3c72">
   <meta name="description" content="三大小ジュニアバレーボールクラブのスケジュール生成システム（プレビュー＆手動対応版）">
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link reAl="stylesheet" href="httpsA://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.8/index.global.min.css" rel="stylesheet" />
   
   <style>
@@ -64,17 +64,17 @@
         align-items: center;
         gap: 0.5rem;
         margin-bottom: 0.75rem;
-        flex-wrap: wrap; /* 小画面で折り返す */
+        flex-wrap: wrap;
     }
     .event-link-item .event-title-display {
-        flex: 1; /* 柔軟な幅 */
+        flex: 1;
         font-weight: 500;
         color: var(--text);
-        min-width: 150px; /* 最小幅を設定 */
+        min-width: 150px;
     }
     .event-link-item input[type="url"] {
-        flex: 2; /* 柔軟な幅 */
-        min-width: 200px; /* 最小幅を設定 */
+        flex: 2;
+        min-width: 200px;
         border: 1px solid var(--secondary-light);
         padding: 0.5rem 0.75rem;
         border-radius: 6px;
@@ -142,9 +142,9 @@
       <div id="manualLinkInputSection" class="hidden">
         <h3 class="text-xl font-bold mb-4">イベント別リンク入力</h3>
         <div id="eventLinkInputs">
-          </div>
+        </div>
       </div>
-      </div>
+    </div>
   </div>
 
   <div id="method2" class="hidden mt-12">
@@ -183,7 +183,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.8/index.global.min.js"></script>
   <script>
-    let fetchedEventsData = []; // Googleカレンダーから取得したイベントデータを保持するグローバル変数
+    let fetchedEventsData = [];
 
     document.addEventListener('DOMContentLoaded', ()=>{
       const now=new Date();
@@ -199,8 +199,8 @@
     function showMethod1(){ 
         document.getElementById('methodSelector').classList.add('hidden'); 
         document.getElementById('method1').classList.remove('hidden'); 
-        document.getElementById('manualLinkInputSection').classList.add('hidden'); // 非表示にする
-        document.getElementById('eventLinkInputs').innerHTML = ''; // クリアする
+        document.getElementById('manualLinkInputSection').classList.add('hidden');
+        document.getElementById('eventLinkInputs').innerHTML = '';
     }
     function showMethod2(){ 
         document.getElementById('methodSelector').classList.add('hidden'); 
@@ -209,7 +209,7 @@
     function backToSelector(){ 
         ['methodSelector','method1','method2','calendarPreview','outputSection'].forEach(id=>document.getElementById(id).classList.add('hidden')); 
         document.querySelector('.header-container').classList.remove('hidden'); 
-        fetchedEventsData = []; // グローバル変数をリセット
+        fetchedEventsData = [];
     }
     let generatedURL='';
     function generateAutoURL(){ 
@@ -225,12 +225,12 @@
         document.getElementById('calendarUrl').href=generatedURL; 
         document.getElementById('calendarUrl').textContent=generatedURL; 
         document.getElementById('autoUrlResult').classList.remove('hidden'); 
-        return generatedURL; // URLを返すように変更
+        return generatedURL;
     }
 
     async function fetchAndDisplayEvents(){
         const url = generateAutoURL();
-        if (!url) return; // URLが生成されなかったら処理を中断
+        if (!url) return;
 
         try {
             const response = await fetch(url);
@@ -247,20 +247,16 @@
                 return;
             }
 
-            fetchedEventsData = data.items; // 取得したイベントデータを保存
+            fetchedEventsData = data.items;
 
-            // カレンダープレビュー表示
             document.getElementById('calendarPreview').classList.remove('hidden');
             const calendarEl = document.getElementById('calendar');
-            // 既存のカレンダーがあれば破棄して再作成（多重に描画されるのを防ぐ）
-            // FullCalendar.getCalendarById が関数として存在するかチェック
             if (typeof FullCalendar.getCalendarById === 'function') {
                 const existingCalendar = FullCalendar.getCalendarById(calendarEl.getAttribute('data-fc-id'));
                 if (existingCalendar) {
                     existingCalendar.destroy();
                 }
             } else {
-                // getCalendarById が利用できない場合のフォールバック処理
                 console.warn("FullCalendar.getCalendarById is not available. Clearing calendar element content as a fallback.");
                 calendarEl.innerHTML = ''; 
             }
@@ -278,7 +274,6 @@
             }); 
             cal.render();
 
-            // イベント別リンク入力フォームの生成
             displayManualLinkInputs(fetchedEventsData);
 
         } catch (error) {
@@ -289,23 +284,20 @@
         }
     }
 
-    // イベントごとのリンク入力フォームを生成する関数
     function displayManualLinkInputs(events) {
         const inputSection = document.getElementById('manualLinkInputSection');
         const eventLinkInputsDiv = document.getElementById('eventLinkInputs');
-        eventLinkInputsDiv.innerHTML = ''; // 既存の入力フィールドをクリア
+        eventLinkInputsDiv.innerHTML = '';
 
         if (events.length > 0) {
             inputSection.classList.remove('hidden');
-            // イベントを日付順にソート (再度)
             events.sort((a,b)=>new Date(a.start.dateTime||a.start.date)-new Date(b.start.dateTime||b.start.date));
 
             events.forEach((event, index) => {
                 const eventSummary = event.summary || '無題';
                 const dateObj = new Date(event.start.dateTime || event.start.date);
-                const eventDateDisplay = `${dateObj.getMonth()+1}/${dateObj.getDate()}`; // 表示用の日付形式
+                const eventDateDisplay = `${dateObj.getMonth()+1}/${dateObj.getDate()}`;
                 
-                // リンクキー生成 (YYYY-MM-DD-SUMMARY)
                 const eventLinkKey = `${dateObj.getFullYear()}-${(dateObj.getMonth()+1).toString().padStart(2,'0')}-${dateObj.getDate().toString().padStart(2,'0')}-${eventSummary}`;
 
                 const itemDiv = document.createElement('div');
@@ -321,7 +313,6 @@
         }
     }
 
-    // HTML生成ボタンが押されたときの処理を修正
     function generateHTMLFromAPI(){
         if (fetchedEventsData.length === 0) {
             alert('まず「イベント取得」ボタンを押してイベントデータを取得してください。');
@@ -331,38 +322,33 @@
         const manualLinks = [];
         document.querySelectorAll('#eventLinkInputs .url-input').forEach(input => {
             if (input.value.trim() !== '') {
-                const eventKey = input.dataset.eventKey; // data-event-keyからキーを取得
+                const eventKey = input.dataset.eventKey;
                 const url = input.value.trim();
                 
-                // manualLinksには、keyとurlの形式で格納
                 manualLinks.push({key: eventKey, url: url});
             }
         });
-        // manualLinksをMapに変換して generateFromItems に渡す
         const manualLinkMap = new Map();
         manualLinks.forEach(link => manualLinkMap.set(link.key, link.url));
 
         generateFromItems(fetchedEventsData, manualLinkMap);
     }
 
-    // generateFromJSON の呼び出しも修正
     function generateFromJSON(){ 
         const j=document.getElementById('jsonData').value.trim(); 
         if(!j){alert('JSONを入力してください'); return;} 
         const parsedData = JSON.parse(j);
         
-        // JSONのmanualLinksをMapに変換
         const jsonManualLinkMap = new Map();
         if (parsedData.manualLinks) {
             parsedData.manualLinks.forEach(link => {
-                const dateKey = `${link.date}-${link.summary}`; // JSONから渡される形式
+                const dateKey = `${link.date}-${link.summary}`;
                 jsonManualLinkMap.set(dateKey, link.url);
             });
         }
         generateFromItems(parsedData.items || [], jsonManualLinkMap); 
     }
 
-    // manualLinksMap パラメータを追加し、手動リンク適用ロジックを修正
     function generateFromItems(items, manualLinksMap = new Map()){ 
         const monthNames=['','1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'], 
               dayNames=['日','月','火','水','木','金','土']; 
@@ -374,10 +360,9 @@
                   ed=new Date(e.end.dateTime||e.end.date); 
             let cls='', t=e.summary||'タイトルなし'; 
             
-            // 手動リンクの検索キーを作成 (YYYY-MM-DD-SUMMARY)
-            const eventDateFormatted = sd.toISOString().slice(0, 10); // YYYY-MM-DD
+            const eventDateFormatted = sd.toISOString().slice(0, 10);
             const eventLinkKey = `${eventDateFormatted}-${t}`;
-            const manualLink = manualLinksMap.get(eventLinkKey); // ここで手動リンクを取得
+            const manualLink = manualLinksMap.get(eventLinkKey);
 
             let contentHtml = '';
 
@@ -385,6 +370,7 @@
             else if(/練習試合/.test(t)) cls='practice-match';
             else if(/大会/.test(t)) cls='tournament';
             else if(/合宿/.test(t)) cls='camp'; 
+            else if(/お楽しみ会/.test(t)) cls='fun-event';
             else if(/休/.test(t)) cls='no-practice'; 
             else if(/練習/.test(t)) cls='practice'; 
             
@@ -399,19 +385,18 @@
                 const endMonth = new Date(ed.getTime() - 86400000).getMonth() + 1;
                 
                 let dStr, dayStr;
-                if (sdD === edD) { // 単日合宿
+                if (sdD === edD) {
                     dStr = `${startMonth}/${sdD}`;
                     dayStr = dayNames[sd.getDay()];
-                } else { // 複数日合宿
-                    if (startMonth === endMonth) { // 同じ月内
+                } else {
+                    if (startMonth === endMonth) {
                         dStr = `${startMonth}/${sdD}～${edD}`;
-                    } else { // 月をまたぐ場合
+                    } else {
                         dStr = `${startMonth}/${sdD}～${endMonth}/${edD}`;
                     }
                     dayStr = `${dayNames[sd.getDay()]}～${dayNames[new Date(ed.getTime()-86400000).getDay()]}`;
                 }
 
-                // 手動リンクがあれば <a> タグを使用、なければ <span> タグ
                 contentHtml = manualLink ? 
                     `<a href="${manualLink}" target="_blank" rel="noopener noreferrer" class="${cls}">🏕️ ${t} 🏐</a>` :
                     `<span class="${cls}">🏕️ ${t} 🏐</span>`; 
@@ -421,7 +406,6 @@
                       dayStr=dayNames[sd.getDay()], 
                       timeStr=e.start.dateTime?` ${sd.toTimeString().slice(0,5)}-${ed.toTimeString().slice(0,5)}`:''; 
                 
-                // 手動リンクがあれば <a> タグを使用、なければ <span> タグ
                 contentHtml = manualLink ?
                     `<a href="${manualLink}" target="_blank" rel="noopener noreferrer" class="${cls}">${t}${timeStr}</a>` :
                     `<span class="${cls}">${t}${timeStr}</span>`;
@@ -432,7 +416,6 @@
         const currentYear = document.getElementById('year1')?.value || document.getElementById('year2')?.value || new Date().getFullYear();
         const currentMonth = document.getElementById('month1')?.value || document.getElementById('month2')?.value || (new Date().getMonth() + 1);
 
-        // WordPressに埋め込むためのCSSをwpCss変数に再定義
         const wpCss=`<style>
 /* WordPress対応強化CSS - スケジュール表示部分のスタイル（WordPress埋め込み用） */
 .schedule-container { max-width: 600px !important; margin: 20px auto !important; background: #fff !important; border: 1px solid #ddd !important; border-radius: 8px !important; overflow: hidden !important; box-shadow: 0 5px 15px rgba(0,0,0,0.05) !important; font-family: 'Noto Sans JP', sans-serif !important; color: #333 !important; }
@@ -466,13 +449,12 @@
 }
 .schedule-container .no-practice { color: #616161 !important; text-decoration: none !important; }
 .schedule-container .no-practice:hover { color: #9e9e9e !important; text-decoration: underline !important; }
-/* リンクが貼られた要素の基本的なスタイル */
 .schedule-container a { 
-    text-decoration: none !important; /* デフォルトの下線をなくす */
-    color: inherit !important; /* 親要素の色を継承 */
+    text-decoration: none !important;
+    color: inherit !important;
 }
 .schedule-container a:visited { 
-    color: inherit !important; /* 訪問済みのリンクも色を継承 */
+    color: inherit !important;
 }
 
 /* camp クラスの要素、およびそれがリンクの場合のスタイル */
@@ -496,7 +478,7 @@
   transform: translateY(-2px) !important;
   transition: all 0.3s ease !important;
   animation: campPulse 2s infinite !important;
-  text-decoration: none !important; /* リンクの下線をなくす */
+  text-decoration: none !important;
   line-height: 1.2 !important;
   cursor: pointer !important;
 }
@@ -538,7 +520,7 @@
   transform: translateY(-1px) !important;
   transition: all 0.3s ease !important;
   animation: matchPulse 2.5s infinite !important;
-  text-decoration: none !important; /* リンクの下線をなくす */
+  text-decoration: none !important;
   line-height: 1.2 !important;
   cursor: pointer !important;
 }
@@ -580,7 +562,7 @@
   transform: translateY(-3px) !important;
   transition: all 0.3s ease !important;
   animation: tournamentPulse 2s infinite !important;
-  text-decoration: none !important; /* リンクの下線をなくす */
+  text-decoration: none !important;
   line-height: 1.2 !important;
   cursor: pointer !important;
   position: relative !important;
@@ -616,6 +598,88 @@
   0% { filter: brightness(1) !important; }
   100% { filter: brightness(1.3) drop-shadow(0 0 5px gold) !important; }
 }
+
+/* fun-event（お楽しみ会）クラスの要素、およびそれがリンクの場合のスタイル */
+.schedule-container .fun-event, 
+.schedule-container a.fun-event,
+.schedule-item .fun-event,
+.schedule-item a.fun-event,
+.content .fun-event,
+.content a.fun-event { 
+  background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3) !important;
+  background-size: 200% 100% !important;
+  color: white !important; 
+  padding: 14px 24px !important; 
+  border-radius: 35px !important; 
+  font-weight: 900 !important; 
+  font-size: 1.2em !important;
+  box-shadow: 0 12px 24px rgba(255, 105, 180, 0.4), 0 6px 12px rgba(0, 0, 0, 0.15), 
+              0 0 20px rgba(255, 255, 0, 0.3) !important;
+  border: 3px solid #fff !important;
+  display: inline-block !important;
+  margin: 6px 0 !important;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4), 0 0 10px rgba(255, 255, 255, 0.5) !important;
+  transform: translateY(-3px) rotate(-2deg) !important;
+  transition: all 0.4s ease !important;
+  animation: rainbowSlide 3s linear infinite, funBounce 1s ease-in-out infinite !important;
+  text-decoration: none !important;
+  line-height: 1.3 !important;
+  cursor: pointer !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+.schedule-container .fun-event::before,
+.schedule-container a.fun-event::before,
+.schedule-item .fun-event::before,
+.schedule-item a.fun-event::before,
+.content .fun-event::before,
+.content a.fun-event::before {
+  content: '🎉✨' !important;
+  font-size: 1.3em !important;
+  margin-right: 10px !important;
+  animation: sparkle 1s infinite alternate !important;
+}
+.schedule-container .fun-event::after,
+.schedule-container a.fun-event::after,
+.schedule-item .fun-event::after,
+.schedule-item a.fun-event::after,
+.content .fun-event::after,
+.content a.fun-event::after {
+  content: '✨🎊' !important;
+  font-size: 1.3em !important;
+  margin-left: 10px !important;
+  animation: sparkle 1s infinite alternate-reverse !important;
+}
+.schedule-container .fun-event:hover,
+.schedule-container a.fun-event:hover,
+.schedule-item .fun-event:hover,
+.schedule-item a.fun-event:hover,
+.content .fun-event:hover,
+.content a.fun-event:hover {
+  transform: translateY(-6px) rotate(2deg) scale(1.05) !important;
+  box-shadow: 0 18px 36px rgba(255, 105, 180, 0.6), 0 9px 18px rgba(0, 0, 0, 0.2),
+              0 0 30px rgba(255, 255, 0, 0.5), 0 0 50px rgba(255, 0, 255, 0.3) !important;
+  animation-duration: 1.5s, 0.5s !important;
+}
+@keyframes rainbowSlide {
+  0% { background-position: 0% 0% !important; }
+  100% { background-position: 200% 0% !important; }
+}
+@keyframes funBounce {
+  0%, 100% { transform: translateY(-3px) rotate(-2deg) !important; }
+  50% { transform: translateY(-8px) rotate(2deg) !important; }
+}
+@keyframes sparkle {
+  0% { 
+    transform: scale(1) rotate(0deg) !important; 
+    filter: brightness(1) !important; 
+  }
+  100% { 
+    transform: scale(1.2) rotate(20deg) !important; 
+    filter: brightness(1.5) drop-shadow(0 0 8px rgba(255, 255, 0, 0.8)) !important; 
+  }
+}
+
 @media (max-width: 600px) { 
   .schedule-container { margin: 10px !important; } 
   .schedule-item { flex-direction: column !important; align-items: flex-start !important; } 
